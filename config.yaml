@@ -1,0 +1,12 @@
+# META INFO
+compend: 30.01.2022 22:00       # dd.mm.yyyy hh:mm        (24h format)
+
+# Cogs
+enable_map_alarm: True
+enable_wr_notification: True
+
+# LOGGING
+logtype: STDOUT # STDOUT, FILE
+logfile: kacky_discord.log # might require absolute path
+loglevel: DEBUG # DEBUG, INFO, WARNING, ERROR, CRITICAL
+logger_name: Kacky_Discord_Bot
