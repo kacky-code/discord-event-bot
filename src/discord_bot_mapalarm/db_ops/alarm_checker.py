@@ -1,14 +1,21 @@
-import json
-import pathlib
-import sqlite3
+import mariadb
 
 
 class AlarmChecker:
-    def __init__(self, logger):
+    def __init__(self, logger, config, secrets):
         # set up database connection to manage projects
-        self.connection = sqlite3.connect(
-            pathlib.Path(__file__).parents[3] / "stuff.db"
-        )
+        # set up database connection to manage projects
+        try:
+            self.connection = mariadb.connect(
+                host=config["dbhost"],
+                port=config["dbport"],
+                user=secrets["dbuser"],
+                passwd=secrets["dbpwd"],
+                database=config["dbname"],
+            )
+        except mariadb.Error as e:
+            self.logger.error(f"Connecting to database failed! {e}")
+            raise e
         self.cursor = self.connection.cursor()
         self.logger = logger
 
@@ -31,53 +38,30 @@ class AlarmChecker:
         return self
 
     def get_alarms_for_user(self, user):
-        query = "SELECT setalarms FROM alarms WHERE username = ?;"
-        req = self.cursor.execute(query, (user,)).fetchall()
+        query = "SELECT alarms FROM user_fields WHERE id = ?;"
+        self.cursor.execute(query, (user,))
+        req = self.cursor.fetchone()
         if not req:  # no values
             return []
-        alarmlist = req[0][0].split()
+        alarmlist = req[0].split(";")
         return alarmlist
 
     def set_alarms_for_user(self, user, alarmlist):
-        query = "UPDATE alarms SET setalarms = ? WHERE username = ?"
-        self.cursor.execute(query, (" ".join(alarmlist), user))
+        query = "UPDATE user_fields SET alarms = ? WHERE id = ?"
+        self.cursor.execute(query, (";".join(alarmlist), user))
         self.connection.commit()
 
     def get_users_for_map(self, mapid):
-        query = "SELECT username FROM alarms WHERE setalarms LIKE ?;"
+        query = (
+            "SELECT kack_users.username "
+            "FROM kack_users "
+            "LEFT JOIN user_fields uf ON kack_users.id = uf.id "
+            "WHERE uf.alarms LIKE ?;"
+        )
         req = self.cursor.execute(query, ("%" + str(mapid) + "%",)).fetchall()
         return req
 
     def get_discord_ids_for_map(self, mapid):
-        usernames = self.get_users_for_map(mapid)
-        ids = list(map(lambda u: self.get_discord_id(u[0]), usernames))
-        return ids
-
-    def get_discord_id(self, user: str) -> str:
-        """
-        Read current Discord ID from the database
-
-        Parameters
-        ----------
-        user : str
-            username in the KK system
-
-        Returns
-        -------
-        str
-            Discord ID or "", if there is none stored
-        """
-        query = "SELECT im_handle FROM kack_users WHERE username = ?;"
-        cur_IM = self.cursor.execute(query, (user,)).fetchall()
-        if not cur_IM:
-            return ""
-        else:
-            cur_IM = cur_IM[0][0]
-        try:
-            cur_IM = json.loads(cur_IM)
-        except (json.decoder.JSONDecodeError, TypeError):
-            return ""
-        if "discord" in cur_IM:
-            return cur_IM["discord"]
-        else:
-            return ""
+        query = "SELECT discord_handle FROM user_fields WHERE alarms LIKE ?;"
+        self.cursor.execute(query, ("%" + str(mapid) + "%",))
+        return self.cursor.fetchall()

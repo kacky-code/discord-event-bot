@@ -1,12 +1,20 @@
 # META INFO
-compend: 30.01.2022 22:00       # dd.mm.yyyy hh:mm        (24h format)
+compend: 30.01.2050 22:00       # dd.mm.yyyy hh:mm        (24h format)
 
 # Cogs
 enable_map_alarm: True
-enable_wr_notification: True
+
+# DATABASE SETTINGS
+dbhost: localhost
+dbport: 3306
+dbname: kacky_testing
+# dbuser and dbpwd in secrets.yaml need to be set!
 
 # LOGGING
 logtype: STDOUT # STDOUT, FILE
 logfile: kacky_discord.log # might require absolute path
 loglevel: DEBUG # DEBUG, INFO, WARNING, ERROR, CRITICAL
 logger_name: Kacky_Discord_Bot
+notify_admins_on_error: True
+admins:
+  - admin1#1111

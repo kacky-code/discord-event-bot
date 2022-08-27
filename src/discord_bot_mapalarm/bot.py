@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import pathlib
 from pathlib import Path
@@ -5,9 +6,6 @@ from pathlib import Path
 import discord
 import yaml
 from discord.ext import commands
-
-TOKEN = ""
-GUILD_ID = ""
 
 intents = discord.Intents.default()
 intents.members = True
@@ -17,27 +15,12 @@ logger = None
 
 @bot.event
 async def on_ready():
-    for guild in bot.guilds:
-        if guild.name == GUILD_ID:
-            break
+    """
+    Leave this here for debugging in the future
 
-    logger.debug(
-        f"{bot.user} is connected to the following guild: "
-        f"{guild.name} (id: {guild.id})"
-    )
+    Returns:
 
-    # just trying to debug here
-    for guild in bot.guilds:
-        for member in guild.members:
-            # print(member.name, " ")
-            pass
-
-    # members = '\n - '.join([member.name for member in guild.members])
-    # print(f'Guild Members:\n - {members}')
-    # await guild.members[1].send("hey u")
-
-
-def main():
+    """
     try:
         print(Path(__file__))
         with open(Path(__file__).parents[2] / "secrets.yaml") as s:
@@ -47,9 +30,38 @@ def main():
             "Bot needs a bot.py with 'token' and 'guild' keys, containing the token for"
             " the bot and the ID of the guild to connect to!"
         )
-    TOKEN = secrets["token"]
-    GUILD_ID = secrets["guild"]
-    if TOKEN == "" or GUILD_ID == "":
+    for guild in bot.guilds:
+        if guild.name == secrets["guild"]:
+            break
+
+    print(
+        f"{bot.user} is connected to the following guild: "
+        f"{guild.name} (id: {guild.id})"
+    )
+
+    # just trying to debug here
+    for guild in bot.guilds:
+        for member in guild.members:
+            print(member.name, " ")
+            pass
+
+    members = "\n - ".join([member.name for member in guild.members])
+    print(f"Guild Members:\n - {members}")
+    # await guild.members[1].send("hey u")
+
+
+async def main():
+    try:
+        print(Path(__file__))
+        with open(Path(__file__).parents[2] / "secrets.yaml") as s:
+            secrets = yaml.load(s, yaml.FullLoader)
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            "Bot needs a bot.py with 'token' and 'guild' keys, containing the token for"
+            " the bot and the ID of the guild to connect to!"
+        )
+    TOKEN = secrets.get("token", "")
+    if TOKEN == "":
         raise RuntimeError("Bad values in secrets.yaml!")
 
     with open(Path(__file__).parents[2] / "config.yaml") as c:
@@ -77,10 +89,11 @@ def main():
         logger = logging.getLogger(config["logger_name"])
         logger.setLevel(eval("logging." + config["loglevel"]))
 
-    if config["enable_map_alarm"]:
-        bot.load_extension("discord_bot_mapalarm.cogs.kacky_notifier_cog")
-    bot.run(TOKEN)
+    async with bot:
+        if config["enable_map_alarm"]:
+            await bot.load_extension("cogs.mapalarm")
+        await bot.start(TOKEN)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
