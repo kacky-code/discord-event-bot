@@ -40,13 +40,13 @@ async def on_ready():
     )
 
     # just trying to debug here
-    for guild in bot.guilds:
-        for member in guild.members:
-            print(member.name, " ")
-            pass
+    #for guild in bot.guilds:
+    #    for member in guild.members:
+    #        print(member.name, " ")
+    #        pass
 
-    members = "\n - ".join([member.name for member in guild.members])
-    print(f"Guild Members:\n - {members}")
+    #members = "\n - ".join([member.name for member in guild.members])
+    #print(f"Guild Members:\n - {members}")
     # await guild.members[1].send("hey u")
 
 
@@ -92,6 +92,7 @@ async def main():
     async with bot:
         if config["enable_map_alarm"]:
             await bot.load_extension("cogs.mapalarm")
+        await bot.load_extension("cogs.send_to_channel")
         await bot.start(TOKEN)
 
 

@@ -32,7 +32,7 @@ class MyCog(commands.Cog, name="AlarmsCog"):
     def on_ready(self):
         self.logger.info("mapalarm cog ready")
 
-    @tasks.loop(seconds=60.0)
+    @tasks.loop(seconds=10.0)
     async def printer(self):
         if self.index == 0:  # skip first execution, bot is not set up yet
             self.index += 1
@@ -75,16 +75,18 @@ class MyCog(commands.Cog, name="AlarmsCog"):
             servernum = server["serverNumber"]
             # get time limit and find when 10 min remain (else use timelimit)
             serv_timelimit = server["timeLimit"]
-            comptime = serv_timelimit * 60 - (serv_timelimit - server["timeLeft"])
+            nextmapin = server["timeLimit"] * 60 - (server["timeLimit"] * 60 - server["timeLeft"])
             if serv_timelimit > 10:
                 alarm_mark = 60 * 10  # 10 min in s
             else:
                 alarm_mark = (serv_timelimit - 1) * 60  # timelimit - 1min in s
 
-            if alarm_mark + 30 > comptime > alarm_mark - 29:
+            print(f'{servernum}: {nextmapin}  --  {(server["timeLimit"] * 60 - server["timeLeft"])}')
+
+            if alarm_mark + 30 > nextmapin > alarm_mark - 29:
                 next_map = server["maps"][0]["number"]
                 discord_ids_for_alarm = ac.get_discord_ids_for_map(next_map)
-
+                print(discord_ids_for_alarm)
                 for userid in discord_ids_for_alarm:
                     userid = userid[0]
                     self.logger.debug(f"processing {userid}")
