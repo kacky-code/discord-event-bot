@@ -2,12 +2,13 @@
 compend: 30.01.2050 22:00       # dd.mm.yyyy hh:mm        (24h format)
 
 # Cogs
-enable_map_alarm: True
+enable_map_alarm: False
+enable_wr_alarm: False
 
 # DATABASE SETTINGS
 dbhost: localhost
 dbport: 3306
-dbname: kacky_testing
+dbname: kacky_backend
 # dbuser and dbpwd in secrets.yaml need to be set!
 
 # LOGGING

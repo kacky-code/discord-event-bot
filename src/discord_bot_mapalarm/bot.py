@@ -92,7 +92,8 @@ async def main():
     async with bot:
         if config["enable_map_alarm"]:
             await bot.load_extension("cogs.mapalarm")
-        await bot.load_extension("cogs.send_to_channel")
+        if config["enable_wr_alarm"]:
+            await bot.load_extension("cogs.wralarm")
         await bot.start(TOKEN)
 
 

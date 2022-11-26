@@ -2,6 +2,9 @@ from src.discord_bot_mapalarm.db_ops.db_base import DBBaseConnection
 
 
 class AlarmChecker(DBBaseConnection):
+    def __init__(self, logger, config, secrets):
+        super.__init__(logger, config, secrets)
+
     def get_alarms_for_user(self, user):
         query = "SELECT alarms FROM user_fields WHERE id = ?;"
         self.cursor.execute(query, (user,))
