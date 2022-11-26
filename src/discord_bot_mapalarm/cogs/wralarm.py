@@ -1,11 +1,10 @@
-import datetime
 import logging
 import random
 from pathlib import Path
 
 import discord
 import yaml
-from discord.ext import tasks, commands
+from discord.ext import commands, tasks
 
 from discord_bot_mapalarm.db_ops.wr_notification_check import WRNotification
 from discord_bot_mapalarm.tm_string.tm_format_resolver import TMstr
@@ -38,39 +37,45 @@ class MyCog(commands.Cog, name="WRCog"):
         self.logger.info("WRCog ready")
         self._ready = True
 
-    @tasks.loop(seconds=10.0)
+    @tasks.loop(seconds=10 * 60)
     async def printer(self):
         channel = self.bot.get_channel(1044146248422264852)
         if channel is None:
             if self.printer.current_loop != 0 and not self._ready:
-                self.logger.error("WR Notifier did fail, because bot is not connected to channel!")
+                self.logger.error(
+                    "WR Notifier did fail, because bot is not connected to channel!"
+                )
                 return
             elif self.printer.current_loop == 0:
                 # skip first iteration to give time for set up
                 return
-        self.logger.info(f"Sending message to channel {channel}")
+        self.logger.debug(f"Sending message to channel {channel}")
 
         wrnotifier = WRNotification(self.logger, self.config, self.secrets)
         new_wrs = wrnotifier.get_new_wr()
         if not new_wrs:
-            try:
-                await channel.send("no new wr :(")
-            except Exception as e:
-                pass
+            self.logger.info("No new WR")
 
-        pogs = discord.utils.get(self.bot.emojis, name='POGSLIDE')
+        pogs = discord.utils.get(self.bot.emojis, name="POGSLIDE")
 
         for wr in new_wrs:
             embed_msg = discord.Embed(
                 title=f"{pogs} {TMstr(wr[0]).string} - {wr[3] / 1000}s {pogs}",
                 url="https://kacky.info",
-                description=f"New World Record!",
-                color=random.randint(0, 0xffffff)
+                description="New World Record!",
+                color=random.randint(0, 0xFFFFFF),
             )
             embed_msg.set_thumbnail(
-                url="https://cdn.discordapp.com/avatars/206080696442159104/0fe4a7a12a729ca16a340eb4421cad15.webp?size=100")
-            embed_msg.add_field(name="Player", value=f"{TMstr(wr[1]).string if wr[1] != '' else wr[2]}", inline=False)
-            embed_msg.add_field(name="New WR Time", value=f"{wr[3] / 1000}s", inline=True)
+                url="https://cdn.discordapp.com/avatars/206080696442159104/0fe4a7a12a729ca16a340eb4421cad15.webp?size=100"  # noqa: E501
+            )
+            embed_msg.add_field(
+                name="Player",
+                value=f"{TMstr(wr[1]).string if wr[1] != '' else wr[2]}",
+                inline=False,
+            )
+            embed_msg.add_field(
+                name="New WR Time", value=f"{wr[3] / 1000}s", inline=True
+            )
             embed_msg.add_field(name="Diff", value=f"-{wr[6] / 1000}s", inline=True)
             embed_msg.add_field(name="\u200b", value="\u200b", inline=True)
             srcstr = "unknown"
@@ -78,8 +83,12 @@ class MyCog(commands.Cog, name="WRCog"):
                 srcstr = "Online"
             if wr[5] == "TMX":
                 srcstr = "TMX/MX"
-            embed_msg.add_field(name=f"Date", value=f"{wr[4].strftime('%Y.%M.%d %H:%M')}" + " \u200b" * 10, inline=True)
-            embed_msg.add_field(name=f"Source", value=f"{srcstr}", inline=True)
+            embed_msg.add_field(
+                name="Date",
+                value=f"{wr[4].strftime('%Y.%M.%d %H:%M')}" + " \u200b" * 10,
+                inline=True,
+            )
+            embed_msg.add_field(name="Source", value=f"{srcstr}", inline=True)
             embed_msg.add_field(name="\u200b", value="\u200b", inline=True)
             guild = self.bot.get_guild(self.guild_id)
             cork_user = discord.utils.get(
@@ -87,7 +96,10 @@ class MyCog(commands.Cog, name="WRCog"):
                 name="corkscrew",
                 discriminator="0874",
             )
-            embed_msg.set_footer(text=f"Brought to you by {cork_user.display_name}", icon_url=cork_user.display_avatar.url)
+            embed_msg.set_footer(
+                text=f"Brought to you by {cork_user.display_name}",
+                icon_url=cork_user.display_avatar.url,
+            )
             try:
                 await channel.send(embed=embed_msg)
             except Exception as e:

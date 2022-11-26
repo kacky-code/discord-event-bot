@@ -40,13 +40,13 @@ async def on_ready():
     )
 
     # just trying to debug here
-    #for guild in bot.guilds:
+    # for guild in bot.guilds:
     #    for member in guild.members:
     #        print(member.name, " ")
     #        pass
 
-    #members = "\n - ".join([member.name for member in guild.members])
-    #print(f"Guild Members:\n - {members}")
+    # members = "\n - ".join([member.name for member in guild.members])
+    # print(f"Guild Members:\n - {members}")
     # await guild.members[1].send("hey u")
 
 

@@ -75,13 +75,18 @@ class MyCog(commands.Cog, name="AlarmsCog"):
             servernum = server["serverNumber"]
             # get time limit and find when 10 min remain (else use timelimit)
             serv_timelimit = server["timeLimit"]
-            nextmapin = server["timeLimit"] * 60 - (server["timeLimit"] * 60 - server["timeLeft"])
+            nextmapin = server["timeLimit"] * 60 - (
+                server["timeLimit"] * 60 - server["timeLeft"]
+            )
             if serv_timelimit > 10:
                 alarm_mark = 60 * 10  # 10 min in s
             else:
                 alarm_mark = (serv_timelimit - 1) * 60  # timelimit - 1min in s
 
-            print(f'{servernum}: {nextmapin}  --  {(server["timeLimit"] * 60 - server["timeLeft"])}')
+            print(
+                f"{servernum}: {nextmapin}  --  "
+                '{(server["timeLimit"] * 60 - server["timeLeft"])}'
+            )
 
             if alarm_mark + 30 > nextmapin > alarm_mark - 29:
                 next_map = server["maps"][0]["number"]
