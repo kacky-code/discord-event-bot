@@ -9,6 +9,8 @@ from discord.ext import commands, tasks
 from discord_bot_mapalarm.db_ops.wr_notification_check import WRNotification
 from discord_bot_mapalarm.tm_string.tm_format_resolver import TMstr
 
+from src.discord_bot_mapalarm import bot
+
 
 class MyCog(commands.Cog, name="WRCog"):
     def __init__(self, bot, config, secrets):
@@ -100,7 +102,7 @@ class MyCog(commands.Cog, name="WRCog"):
                 discriminator="0874",
             )
             embed_msg.set_footer(
-                text=f"Brought to you by {cork_user.display_name}",
+                text=f"Bot by {cork_user.display_name}",
                 icon_url=cork_user.display_avatar.url,
             )
             try:
@@ -116,6 +118,28 @@ class MyCog(commands.Cog, name="WRCog"):
                     # Exception might be raised because channel = None, but bot is not
                     # connected yet.
                     pass
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        channel = await self.bot.fetch_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        user = await self.bot.fetch_user(payload.user_id)
+        emoji = payload.emoji
+        guild = self.bot.get_guild(self.guild_id)
+        user_member = discord.utils.get(
+            guild.members,
+            name=user.name,
+            discriminator=user.discriminator,
+        )
+
+        # [Kacky Krew, Kacky Jury, Contributor]
+        deletion_roles = [615883012755947531, 833357930237132830, 683322616404246606]
+
+        for role in user_member.roles:
+            if role.id in deletion_roles and emoji.id == 867137481940664391:
+                self.logger.info(f"User {user} deleted "
+                                 f"message {message.embeds[0].fields}")
+                await message.delete()
 
 
 async def setup(bot):
