@@ -11,7 +11,6 @@ class WRNotification(DBBaseConnection):
         query = "SELECT id FROM worldrecords_discord_notify WHERE notified = 0;"
         self.cursor.execute(query)
         notify_ids = self.cursor.fetchall()
-        self.logger.debug(f"SEND NOTIFICATIONS FOR {notify_ids}")
         # if result is empty list, return empty list
         if not notify_ids:
             return []

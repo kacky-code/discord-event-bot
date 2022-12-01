@@ -37,7 +37,7 @@ class MyCog(commands.Cog, name="WRCog"):
         self.logger.info("WRCog ready")
         self._ready = True
 
-    @tasks.loop(seconds=10 * 60)
+    @tasks.loop(seconds=1 * 60)
     async def printer(self):
         channel = self.bot.get_channel(1044146248422264852)
         if channel is None:
@@ -59,24 +59,27 @@ class MyCog(commands.Cog, name="WRCog"):
         pogs = discord.utils.get(self.bot.emojis, name="POGSLIDE")
 
         for wr in new_wrs:
+            mapname = TMstr(wr[0])
             embed_msg = discord.Embed(
-                title=f"{pogs} {TMstr(wr[0]).string} - {wr[3] / 1000}s {pogs}",
+                title=f"{pogs} {mapname.string} - {wr[3] / 1000}s {pogs}",
                 url="https://kacky.info",
                 description="New World Record!",
                 color=random.randint(0, 0xFFFFFF),
             )
-            embed_msg.set_thumbnail(
-                url="https://cdn.discordapp.com/avatars/206080696442159104/0fe4a7a12a729ca16a340eb4421cad15.webp?size=100"  # noqa: E501
-            )
+            # embed_msg.set_thumbnail(
+            #    url="https://cdn.discordapp.com/avatars/206080696442159104/0fe4a7a12a729ca16a340eb4421cad15.webp?size=100"  # noqa: E501
+            # )
+            kackyid = mapname.string.split("#")[1].replace("\u2013", "-")
+            embed_msg.set_thumbnail(url=f"https://static.kacky.info/kk/{kackyid}.png")
             embed_msg.add_field(
                 name="Player",
                 value=f"{TMstr(wr[1]).string if wr[1] != '' else wr[2]}",
                 inline=False,
             )
             embed_msg.add_field(
-                name="New WR Time", value=f"{wr[3] / 1000}s", inline=True
+                name="New WR Time", value=f"{wr[3] / 1000:.3f}s", inline=True
             )
-            embed_msg.add_field(name="Diff", value=f"-{wr[6] / 1000}s", inline=True)
+            embed_msg.add_field(name="Diff", value=f"-{wr[6] / 1000:.3f}s", inline=True)
             embed_msg.add_field(name="\u200b", value="\u200b", inline=True)
             srcstr = "unknown"
             if wr[5] in ["KKDB", "KRDB"]:
@@ -85,7 +88,7 @@ class MyCog(commands.Cog, name="WRCog"):
                 srcstr = "TMX/MX"
             embed_msg.add_field(
                 name="Date",
-                value=f"{wr[4].strftime('%Y.%M.%d %H:%M')}" + " \u200b" * 10,
+                value=f"{wr[4].strftime('%Y.%m.%d %H:%M')}" + " \u200b" * 10,
                 inline=True,
             )
             embed_msg.add_field(name="Source", value=f"{srcstr}", inline=True)
@@ -103,6 +106,8 @@ class MyCog(commands.Cog, name="WRCog"):
             try:
                 await channel.send(embed=embed_msg)
             except Exception as e:
+                self.logger.info("Exception when sending")
+                self.logger.info(e)
                 self.logger.info(self._ready)
                 if self._ready:  # this is a problem
                     self.logger.error(e)
