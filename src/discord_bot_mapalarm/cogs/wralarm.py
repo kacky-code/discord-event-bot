@@ -9,8 +9,6 @@ from discord.ext import commands, tasks
 from discord_bot_mapalarm.db_ops.wr_notification_check import WRNotification
 from discord_bot_mapalarm.tm_string.tm_format_resolver import TMstr
 
-from src.discord_bot_mapalarm import bot
-
 
 class MyCog(commands.Cog, name="WRCog"):
     def __init__(self, bot, config, secrets):
@@ -88,6 +86,8 @@ class MyCog(commands.Cog, name="WRCog"):
                 srcstr = "Online"
             if wr[5] == "TMX":
                 srcstr = "TMX/MX"
+            if wr[5] == "DEDI":
+                srcstr = "Dedimania"
             embed_msg.add_field(
                 name="Date",
                 value=f"{wr[4].strftime('%Y.%m.%d %H:%M')}" + " \u200b" * 10,
@@ -136,9 +136,25 @@ class MyCog(commands.Cog, name="WRCog"):
         deletion_roles = [615883012755947531, 833357930237132830, 683322616404246606]
 
         for role in user_member.roles:
-            if role.id in deletion_roles and emoji.id == 867137481940664391:
-                self.logger.info(f"User {user} deleted "
-                                 f"message {message.embeds[0].fields}")
+            if role.id in deletion_roles and emoji.id == 1049783249964105729:
+                self.logger.info(
+                    f"User {user} deleted " f"message {message.embeds[0].fields}"
+                )
+                for admin in self.config["tm_server_admins"]:
+                    um = discord.utils.get(
+                        guild.members,
+                        name=admin.split("#")[0],
+                        discriminator=admin.split("#")[1],
+                    )
+                    mapname = message.embeds[0].title.split(" ")[1:5]
+                    mapname = mapname if mapname[3] != "-" else mapname[0:3]
+                    await um.send(
+                        "Cheated WR Reported:\n"
+                        f"- Player: {message.embeds[0].fields[0].value}\n"
+                        f"- Map: {' '.join(mapname)}\n"
+                        f"- Time: {message.embeds[0].fields[1].value}\n"
+                        f"Pls remove or something!"
+                    )
                 await message.delete()
 
 
