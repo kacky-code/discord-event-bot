@@ -39,7 +39,7 @@ class MyCog(commands.Cog, name="WRCog"):
 
     @tasks.loop(seconds=1 * 60)
     async def printer(self):
-        channel = self.bot.get_channel(1044146248422264852)
+        channel = self.bot.get_channel(self.config["wr_channel_id"])
         if channel is None:
             if self.printer.current_loop != 0 and not self._ready:
                 self.logger.error(
@@ -60,17 +60,24 @@ class MyCog(commands.Cog, name="WRCog"):
 
         for wr in new_wrs:
             mapname = TMstr(wr[0])
+            mapurl = (
+                f"https://tmnf.exchange/trackshow/{wr[7]}"
+                if "Kackiest" in mapname.string
+                else f"https://trackmania.exchange/maps/{wr[7]}"
+            )
             embed_msg = discord.Embed(
                 title=f"{pogs} {mapname.string} - {wr[3] / 1000}s {pogs}",
-                url="https://kacky.info",
+                url=mapurl,
                 description="New World Record!",
                 color=random.randint(0, 0xFFFFFF),
             )
-            # embed_msg.set_thumbnail(
-            #    url="https://cdn.discordapp.com/avatars/206080696442159104/0fe4a7a12a729ca16a340eb4421cad15.webp?size=100"  # noqa: E501
-            # )
             kackyid = mapname.string.split("#")[1].replace("\u2013", "-")
-            embed_msg.set_thumbnail(url=f"https://static.kacky.info/kk/{kackyid}.png")
+            thumbnail = (
+                f"https://static.kacky.info/kk/thumbs/{kackyid}.png"
+                if "Kackiest" in mapname.string
+                else f"https://static.kacky.info/kr/thumbs/{kackyid}.png"
+            )
+            embed_msg.set_thumbnail(url=thumbnail)
             embed_msg.add_field(
                 name="Player",
                 value=f"{TMstr(wr[1]).string if wr[1] != '' else wr[2]}",
@@ -88,6 +95,8 @@ class MyCog(commands.Cog, name="WRCog"):
                 srcstr = "TMX/MX"
             if wr[5] == "DEDI":
                 srcstr = "Dedimania"
+            if wr[5] == "NADO":
+                srcstr = "Nadeo"
             embed_msg.add_field(
                 name="Date",
                 value=f"{wr[4].strftime('%Y.%m.%d %H:%M')}" + " \u200b" * 10,
