@@ -3,7 +3,10 @@ compend: 30.01.2050 22:00       # dd.mm.yyyy hh:mm        (24h format)
 
 # Cogs
 enable_map_alarm: False
-enable_wr_alarm: False
+enable_wr_alarm: True
+
+# WR Alarm Settings
+wr_channel_id: 1052230458156519474
 
 # DATABASE SETTINGS
 dbhost: localhost
@@ -18,6 +21,6 @@ loglevel: DEBUG # DEBUG, INFO, WARNING, ERROR, CRITICAL
 logger_name: Kacky_Discord_Bot
 notify_admins_on_error: True
 admins:
-  - admin1#1111
+  - admin#1111
 tm_server_admins:
-  - admin1#1111
+  - admin#1111

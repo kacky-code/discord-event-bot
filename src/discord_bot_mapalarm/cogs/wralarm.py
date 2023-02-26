@@ -63,7 +63,7 @@ class MyCog(commands.Cog, name="WRCog"):
             mapurl = (
                 f"https://tmnf.exchange/trackshow/{wr[7]}"
                 if "Kackiest" in mapname.string
-                else f"https://trackmania.exchange/maps/{wr[7]}"
+                else f"https://trackmania.io/#/leaderboard/{wr[8]}"
             )
             embed_msg = discord.Embed(
                 title=f"{pogs} {mapname.string} - {wr[3] / 1000}s {pogs}",
@@ -73,9 +73,9 @@ class MyCog(commands.Cog, name="WRCog"):
             )
             kackyid = mapname.string.split("#")[1].replace("\u2013", "-")
             thumbnail = (
-                f"https://static.kacky.info/kk/thumbs/{kackyid}.png"
+                f"https://static.kacky.info/kk/thumbs/{kackyid}.jpg"
                 if "Kackiest" in mapname.string
-                else f"https://static.kacky.info/kr/thumbs/{kackyid}.png"
+                else f"https://static.kacky.info/kr/thumbs/{kackyid.split(' ')[0]}.jpg"
             )
             embed_msg.set_thumbnail(url=thumbnail)
             embed_msg.add_field(
@@ -99,7 +99,8 @@ class MyCog(commands.Cog, name="WRCog"):
                 srcstr = "Nadeo"
             embed_msg.add_field(
                 name="Date",
-                value=f"{wr[4].strftime('%Y.%m.%d %H:%M')}" + " \u200b" * 10,
+                value=f"<t:{int(wr[4].timestamp())}:d><t:{int(wr[4].timestamp())}:t>"
+                + " \u200b" * 10,
                 inline=True,
             )
             embed_msg.add_field(name="Source", value=f"{srcstr}", inline=True)

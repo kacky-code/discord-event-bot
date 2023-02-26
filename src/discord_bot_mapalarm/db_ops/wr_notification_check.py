@@ -20,7 +20,7 @@ class WRNotification(DBBaseConnection):
         for wr_id in notify_ids:
             query = (
                 "SELECT maps.name, wr.nickname, wr.login, wr.score, wr.date, "
-                "wr.source, wr_not.time_diff, maps.tmx_id "
+                "wr.source, wr_not.time_diff, maps.tmx_id, maps.tm_uid "
                 "FROM worldrecords AS wr "
                 "LEFT JOIN maps "
                 "ON wr.map_id = maps.id "
