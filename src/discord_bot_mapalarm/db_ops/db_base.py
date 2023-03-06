@@ -1,16 +1,19 @@
+import logging
+
 import mariadb
 
 
 class DBBaseConnection:
-    def __init__(self, logger, config, secrets):
+    def __init__(self, host, port, dbname, user, pwd, loggername):
+        logger = logging.getLogger(loggername)
         # set up database connection to manage projects
         try:
             self.connection = mariadb.connect(
-                host=config["dbhost"],
-                port=config["dbport"],
-                user=secrets["dbuser"],
-                passwd=secrets["dbpwd"],
-                database=config["dbname"],
+                host=host,
+                port=port,
+                user=user,
+                passwd=pwd,
+                database=dbname,
             )
         except mariadb.Error as e:
             logger.error(f"Connecting to database failed! {e}")

@@ -65,7 +65,7 @@ class MyCog(commands.Cog, name="AlarmsCog"):
 
         servers = schedule_data["servers"]
         comptime = schedule_data["comptimeLeft"]
-        ac = AlarmChecker(self.logger, self.config, self.secrets)
+        ac = AlarmChecker(self.config, self.secrets)
 
         if comptime < 0:
             # stop, competition is over!
