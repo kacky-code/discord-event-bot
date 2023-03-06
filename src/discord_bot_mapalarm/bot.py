@@ -9,6 +9,7 @@ from discord.ext import commands
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 bot = commands.Bot(command_prefix="THEREISnoFUCKINGprefix!", intents=intents)
 logger = None
 
@@ -31,13 +32,16 @@ async def on_ready():
             " the bot and the ID of the guild to connect to!"
         )
     for guild in bot.guilds:
-        if guild.name == secrets["guild"]:
-            break
+        # if guild.id != secrets["guild"]:
+            # await guild.leave()
+            # print(f"leaving guild.name")
+            # exit()
+        print(
+            f"{bot.user} is connected to the following guild: "
+            f"{guild.name} (id: {guild.id})"
+        )
 
-    print(
-        f"{bot.user} is connected to the following guild: "
-        f"{guild.name} (id: {guild.id})"
-    )
+    # print(bot.guilds)
 
     # just trying to debug here
     # for guild in bot.guilds:
@@ -94,6 +98,8 @@ async def main():
             await bot.load_extension("cogs.mapalarm")
         if config["enable_wr_alarm"]:
             await bot.load_extension("cogs.wralarm")
+        if config["enable_event_roles"]:
+            await bot.load_extension("cogs.eventroles")
         await bot.start(TOKEN)
 
 
