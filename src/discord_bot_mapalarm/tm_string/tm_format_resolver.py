@@ -20,6 +20,7 @@ class TMstr:
         formatters = {
             "w": '<span style="letter-spacing: +0.1em;font-size:larger">',  # wide font
             "n": '<span style="letter-spacing: -0.1em;font-size:smaller">',  # narrow
+            "m": '<span style="letter-spacing: 0em;font-size:medium">',  # normal width
             "o": '<span style="font-weight:bold">',  # bold font
             "i": '<span style="font-style:italic">',  # italic font
             "t": '<span style="text-transform:uppercase">',  # uppercase text
@@ -41,11 +42,11 @@ class TMstr:
             htmlstr,
         )
         for match in formatmatches:
-            if match == "$z":
+            if match.lower() == "$z":
                 resetstr = "</span>" * style_spans
                 re.sub(match, resetstr, htmlstr, count=1)
             htmlstr = re.sub(
-                r"\$" + f"{match[1:]}", formatters[match[1:]], htmlstr, count=1
+                r"\$" + f"{match[1:]}", formatters[match[1:].lower()], htmlstr, count=1
             )
             style_spans += 1
 
@@ -67,6 +68,7 @@ def printtest(string):
 
 if __name__ == "__main__":
     teststr1 = "$f00$f3b\u05d3\u05d5\u05d6\u03c2 $ga$nmgrebor$wn L\u0192s"
+    teststr1 = "$I$0DFс$0CFа$0AFв $000|$fff маפוѕтяа. $3CF<3"
     teststr2 = "$w$999c¢¬$c60Cork$0aascrew"
     teststr3 = "$CCC$idebil.$z$s$a00Cѳrk$0f1s$0a5crew"
     teststr4 = "$o$i$a00K$a60a$aa0ck$0a0iest Kack$a00$a00y $g7 - Server 4"
