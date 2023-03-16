@@ -1,6 +1,5 @@
 import datetime
 import logging
-import time
 from pathlib import Path
 
 import discord
@@ -28,6 +27,8 @@ class MyCog(commands.Cog, name="EventrolesCog"):
 
         with open(Path(__file__).parents[3] / "discord_tm_rel.yaml", "r") as dtmr:
             self.discord_users = yaml.load(dtmr, yaml.FullLoader)
+            if self.discord_users is None:
+                self.discord_users = {}
 
         self.printer.start()
 
@@ -40,7 +41,9 @@ class MyCog(commands.Cog, name="EventrolesCog"):
         self._ready = True
 
     def check_reply_to_bot(self, msg):
-        if msg.reference and msg.author != self.bot.user:  # and msg.reference.resolved.author == self.bot.user:
+        if (
+            msg.reference and msg.author != self.bot.user
+        ):  # and msg.reference.resolved.author == self.bot.user:
             return True
         return False
 
@@ -54,23 +57,49 @@ class MyCog(commands.Cog, name="EventrolesCog"):
         # todo: check message content
         rank_member = guild.get_member(int(message.content[2:-1]))
         # bronze, silver, gold, kacky
-        event_roles = [920474813246627841, 859891083789074435, 859891619821912104, 878646582839480361]
+        event_roles = [
+            920474813246627841,
+            859891083789074435,
+            859891619821912104,
+            878646582839480361,
+        ]
         # event_roles = [860857854482579518, 860855067380940811, 867881172957003796]
-        tmlogin = " ".join(message.reference.resolved.embeds[0].description.split(" ")[2:])
+        tmlogin = " ".join(
+            message.reference.resolved.embeds[0].description.split(" ")[2:]
+        )
+        self.logger.debug(f"working on tmlogin: {tmlogin}")
         with open(Path(__file__).parents[3] / "discord_tm_rel.yaml", "a+") as dtmr:
-            if self.discord_users and tmlogin not in self.discord_users:
-                self.discord_users[tmlogin] = {"discord_user": str(rank_member), "snowflake": rank_member.id}
-                yaml.dump({tmlogin: {"discord_user": str(rank_member), "snowflake": rank_member.id}}, dtmr)
+            self.logger.debug(self.discord_users)
+            if self.discord_users is not {} and tmlogin not in self.discord_users:
+                self.discord_users[tmlogin] = {
+                    "discord_user": str(rank_member),
+                    "snowflake": rank_member.id,
+                }
+                yaml.dump(
+                    {
+                        tmlogin: {
+                            "discord_user": str(rank_member),
+                            "snowflake": rank_member.id,
+                        }
+                    },
+                    dtmr,
+                )
             else:
-                self.logger.error(f"{tmlogin} already exists in discord_user dict! {self.discord_users[tmlogin]}")
+                self.logger.error(
+                    f"{tmlogin} already exists in discord_user dict! {self.discord_users[tmlogin]}"
+                )
                 # raise AssertionError(f"{tmlogin} already exists in discord_user dict!")
         # we can assume this happens when a user has no event rank yet.
         # still, double check to be safe
-        common_elements = [role for role in event_roles if role in [r.id for r in rank_member.roles]]
+        common_elements = [
+            role for role in event_roles if role in [r.id for r in rank_member.roles]
+        ]
         if common_elements:
             channel = self.bot.get_channel(self.config["event_roles_channel_id"])
-            await channel.send(f"{str(rank_member)} already has an event role. I've stored the tm login and "
-                               "discord name, but I need you to fix their roles. Thank you for your cooperation.")
+            await channel.send(
+                f"{str(rank_member)} already has an event role. I've stored the tm login and "
+                "discord name, but I need you to fix their roles. Thank you for your cooperation."
+            )
             return
         await rank_member.add_roles(guild.get_role(event_roles[0]))
         # change tmlogin to discord name in message
@@ -80,7 +109,7 @@ class MyCog(commands.Cog, name="EventrolesCog"):
         await message.delete()
         # await rank_user.remove_roles(guild.get_role(test_role[0]))
 
-    @tasks.loop(seconds=1 * 5)
+    @tasks.loop(seconds=1 * 60)
     async def printer(self):
         checker = RoleChecker(self.config, self.secrets)
         fins = checker.get_fins_count()
@@ -88,19 +117,15 @@ class MyCog(commands.Cog, name="EventrolesCog"):
 
         for fin in newfins:
             # check if last fin happened after last check
-            if not fin[1] > self._last_check:
-                # last finish of this player did not happen in last check cycle
-                continue
+            self.logger.debug(f"checking fin {fin}")
             if fin[0] in [50, 40, 25, 15]:
                 # might have a rank change
                 self.logger.debug(f"updating {fin}")
                 await self.send_rank_msg(fin)
-                pass
+                self.logger.debug("awaited sending")
             # no rank change needed
-        await self.send_rank_msg(fin)
         self._last_check = datetime.datetime.utcnow()
         return
-
 
     async def send_rank_msg(self, fin_info):
         channel = self.bot.get_channel(self.config["event_roles_channel_id"])
@@ -114,21 +139,32 @@ class MyCog(commands.Cog, name="EventrolesCog"):
                 # skip first iteration to give time for set up
                 return
 
-        ranks = {50: ["Kacky", 0xa000ff], 40: ["Gold", 0xefb310], 25: ["Silver", 0xaacee3], 15: ["Bronze", 0xb06050]}
+        ranks = {
+            50: ["Kacky", 0xA000FF],
+            40: ["Gold", 0xEFB310],
+            25: ["Silver", 0xAACEE3],
+            15: ["Bronze", 0xB06050],
+        }
 
         # bronze, silver, gold, kacky
-        event_roles = [920474813246627841, 859891083789074435, 859891619821912104, 878646582839480361]
+        event_roles = [
+            920474813246627841,
+            859891083789074435,
+            859891619821912104,
+            878646582839480361,
+        ]
         # event_roles = [860857854482579518, 860855067380940811, 867881172957003796]
 
         tmlogin = fin_info[3]
         guild = self.bot.get_guild(self.guild_id)
+        self.logger.debug(tmlogin)
         # check if we know this tmlogin and the user's roles
         if tmlogin in self.discord_users:
             self.logger.debug("known login")
             user = discord.utils.get(
                 guild.members,
                 name=self.discord_users[tmlogin]["discord_user"].split("#")[0],
-                discriminator=self.discord_users[tmlogin]["discord_user"].split("#")[1]
+                discriminator=self.discord_users[tmlogin]["discord_user"].split("#")[1],
             )
             # await user.remove_roles(guild.get_role(event_roles[1]))
             # return
@@ -136,10 +172,12 @@ class MyCog(commands.Cog, name="EventrolesCog"):
             self.logger.debug(user_roles)
 
             # check if change of role is needed
-            if (event_roles[0] in user_roles and fin_info[0] == 15) \
-                    or (event_roles[1] in user_roles and fin_info[0] == 25) \
-                    or (event_roles[2] in user_roles and fin_info[0] == 40):
-                    #or (event_roles[3] in user_roles and fin_info[0] == 50):
+            if (
+                (event_roles[0] in user_roles and fin_info[0] == 15)
+                or (event_roles[1] in user_roles and fin_info[0] == 25)
+                or (event_roles[2] in user_roles and fin_info[0] == 40)
+                or (event_roles[3] in user_roles and fin_info[0] == 50)
+            ):
                 # user finished a map they already had, nothing to do
                 self.logger.debug("user already has correct role.")
                 return
@@ -165,7 +203,7 @@ class MyCog(commands.Cog, name="EventrolesCog"):
             user = discord.utils.get(
                 guild.members,
                 name=self.discord_users[tmlogin]["discord_user"].split("#")[0],
-                discriminator=self.discord_users[tmlogin]["discord_user"].split("#")[1]
+                discriminator=self.discord_users[tmlogin]["discord_user"].split("#")[1],
             )
             name = user.mention
             self.logger.debug(f"known login, giving {name} role {newrole}")
@@ -201,6 +239,7 @@ class MyCog(commands.Cog, name="EventrolesCog"):
                 # Exception might be raised because channel = None, but bot is not
                 # connected yet.
                 pass
+
 
 async def setup(bot):
     with open(Path(__file__).parents[3] / "config.yaml") as c:
