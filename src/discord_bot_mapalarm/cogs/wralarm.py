@@ -78,6 +78,7 @@ class MyCog(commands.Cog, name="WRCog"):
                 else f"https://static.kacky.info/kr/thumbs/{kackyid.split(' ')[0]}.jpg"
             )
             embed_msg.set_thumbnail(url=thumbnail)
+            self.logger.info(wr[1])
             embed_msg.add_field(
                 name="Player",
                 value=f"{TMstr(wr[1]).string if wr[1] != '' else wr[2]}",
@@ -115,7 +116,22 @@ class MyCog(commands.Cog, name="WRCog"):
                 text=f"Bot by {cork_user.display_name}",
                 icon_url=cork_user.display_avatar.url,
             )
+
+            firstfin_msg = None
+            if wr[3] + wr[6] == 1800000:
+                firstfin_msg = discord.Embed(
+                    title=f"First Finish on {mapname.string}",
+                    description=f"First Fin by {TMstr(wr[1]).string if wr[1] != '' else wr[2]}!",
+                    color=random.randint(0, 0xFFFFFF),
+                )
+                firstfin_msg.set_footer(
+                    text=f"Bot by {cork_user.display_name}",
+                    icon_url=cork_user.display_avatar.url,
+                )
+
             try:
+                if firstfin_msg:
+                    await channel.send(embed=firstfin_msg)
                 await channel.send(embed=embed_msg)
             except Exception as e:
                 self.logger.info("Exception when sending")

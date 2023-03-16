@@ -7,7 +7,7 @@ import requests
 import yaml
 from discord.ext import commands, tasks
 
-from src.discord_bot_mapalarm.db_ops.alarm_checker import AlarmChecker
+from discord_bot_mapalarm.db_ops.alarm_checker import AlarmChecker
 
 
 class MyCog(commands.Cog, name="AlarmsCog"):
@@ -32,7 +32,7 @@ class MyCog(commands.Cog, name="AlarmsCog"):
     def on_ready(self):
         self.logger.info("mapalarm cog ready")
 
-    @tasks.loop(seconds=10.0)
+    @tasks.loop(seconds=20.0)
     async def printer(self):
         if self.index == 0:  # skip first execution, bot is not set up yet
             self.index += 1
@@ -63,9 +63,11 @@ class MyCog(commands.Cog, name="AlarmsCog"):
             self.logger.error(f"An unspecified Error occurred! {e}")
             return
 
+        self.logger.debug(schedule_data)
         servers = schedule_data["servers"]
         comptime = schedule_data["comptimeLeft"]
         ac = AlarmChecker(self.config, self.secrets)
+        alarm_mark = 30  # notify 60 seconds before map comes up
 
         if comptime < 0:
             # stop, competition is over!
@@ -74,22 +76,15 @@ class MyCog(commands.Cog, name="AlarmsCog"):
         for server in servers:
             servernum = server["serverNumber"]
             # get time limit and find when 10 min remain (else use timelimit)
-            serv_timelimit = server["timeLimit"]
-            nextmapin = server["timeLimit"] * 60 - (
-                server["timeLimit"] * 60 - server["timeLeft"]
-            )
-            if serv_timelimit > 10:
-                alarm_mark = 60 * 10  # 10 min in s
-            else:
-                alarm_mark = (serv_timelimit - 1) * 60  # timelimit - 1min in s
+            nextmapin = server["timeLeft"]
 
-            print(
-                f"{servernum}: {nextmapin}  --  "
-                '{(server["timeLimit"] * 60 - server["timeLeft"])}'
-            )
+            # #print(
+            #     f"{servernum}: {nextmapin}  --  "
+            #     '{(server["timeLimit"] * 60 - server["timeLeft"])}'
+            # )
 
-            if alarm_mark + 30 > nextmapin > alarm_mark - 29:
-                next_map = server["maps"][0]["number"]
+            if alarm_mark + 10 > nextmapin >= alarm_mark - 10:
+                next_map = server["maps"][1]["number"]
                 discord_ids_for_alarm = ac.get_discord_ids_for_map(next_map)
                 print(discord_ids_for_alarm)
                 for userid in discord_ids_for_alarm:
@@ -108,8 +103,8 @@ class MyCog(commands.Cog, name="AlarmsCog"):
                             self.logger.error(f"ID {userid} is a bad Discord ID!")
                             continue
                         await user.send(
-                            f"Hey, map **{next_map}** is coming up on **{servernum}**! "
-                            f"Roughly 10 min until it's played, glhf!"
+                            f"Hey, map **{next_map}** is coming up on Server **{servernum}**! "
+                            f"GLHF!"
                         )
                     except discord.errors.HTTPException:
                         self.logger.error(f"ID {userid} is a bad Discord ID!")

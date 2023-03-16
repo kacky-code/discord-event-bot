@@ -2,10 +2,15 @@ from discord_bot_mapalarm.db_ops.db_base import DBBaseConnection
 
 
 class WRNotification(DBBaseConnection):
-    # def __init__(self, logger, config, secrets):
-    # def __init__(self, *args):
-    # super().__init__(logger, config, secrets)
-    #    super(WRNotification, self).__init__(*args)
+    def __init__(self, logger, config, secrets):
+        super().__init__(
+            config["dbhost"],
+            config["dbport"],
+            config["dbname"],
+            secrets["dbuser"],
+            secrets["dbpwd"],
+            config["logger_name"],
+        )
 
     def get_new_wr(self):
         query = "SELECT id FROM worldrecords_discord_notify WHERE notified = 0;"

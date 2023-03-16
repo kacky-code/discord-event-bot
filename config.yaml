@@ -1,26 +1,27 @@
 # META INFO
-compend: 30.01.2050 22:00       # dd.mm.yyyy hh:mm        (24h format)
+compend: 02.04.2023 22:00       # dd.mm.yyyy hh:mm        (24h format)
 
 # Cogs
-enable_map_alarm: False
-enable_wr_alarm: False
-enable_event_roles: False
+enable_map_alarm: True
+#enable_map_alarm: False
+enable_wr_alarm: True
+enable_event_roles: True
 
 # WR Alarm Settings
-wr_channel_id: 1044146248422264852
-event_roles_channel_id: 1044146248422264852
+wr_channel_id: 1052230458156519474
+event_roles_channel_id: 1052230458156519474
 
 
 # DATABASE SETTINGS
-dbhost:
-dbport:
-dbname:
+dbhost: localhost
+dbport: 3306
+dbname: kacky_backend_rebuild
 # dbuser and dbpwd in secrets.yaml need to be set!
 
 # Kacky DB settings
-kdbhost:
-kdbport:
-kdbname:
+kdbhost: 116.202.114.119
+kdbport: 3306
+kdbname: kacky_kackiest
 # kdbuser and kdbpwd in secrets.yaml need to be set!
 
 # LOGGING
@@ -30,6 +31,7 @@ loglevel: DEBUG # DEBUG, INFO, WARNING, ERROR, CRITICAL
 logger_name: Kacky_Discord_Bot
 notify_admins_on_error: True
 admins:
-  - admin#1111
+  - corkscrew#0874
 tm_server_admins:
-  - admin#1111
+  - corkscrew#0874
+  - Kim#0786
