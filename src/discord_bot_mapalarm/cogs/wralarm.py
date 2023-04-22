@@ -6,8 +6,10 @@ import discord
 import yaml
 from discord.ext import commands, tasks
 
+# from discord_bot_mapalarm.tm_string.tm_format_resolver import TMstr
+from tmformatresolver import TMString
+
 from discord_bot_mapalarm.db_ops.wr_notification_check import WRNotification
-from discord_bot_mapalarm.tm_string.tm_format_resolver import TMstr
 
 
 class MyCog(commands.Cog, name="WRCog"):
@@ -59,7 +61,7 @@ class MyCog(commands.Cog, name="WRCog"):
         pogs = discord.utils.get(self.bot.emojis, name="POGSLIDE")
 
         for wr in new_wrs:
-            mapname = TMstr(wr[0])
+            mapname = TMString(wr[0])
             mapurl = (
                 f"https://tmnf.exchange/trackshow/{wr[7]}"
                 if "Kackiest" in mapname.string
@@ -78,10 +80,9 @@ class MyCog(commands.Cog, name="WRCog"):
                 else f"https://static.kacky.info/kr/thumbs/{kackyid.split(' ')[0]}.jpg"
             )
             embed_msg.set_thumbnail(url=thumbnail)
-            self.logger.info(wr[1])
             embed_msg.add_field(
                 name="Player",
-                value=f"{TMstr(wr[1]).string if wr[1] != '' else wr[2]}",
+                value=f"{TMString(wr[1]).string if wr[1] != '' else wr[2]}",
                 inline=False,
             )
             embed_msg.add_field(
@@ -121,7 +122,7 @@ class MyCog(commands.Cog, name="WRCog"):
             if wr[3] + wr[6] == 1800000:
                 firstfin_msg = discord.Embed(
                     title=f"First Finish on {mapname.string}",
-                    description=f"First Fin by {TMstr(wr[1]).string if wr[1] != '' else wr[2]}!",
+                    description=f"First Fin by {TMString(wr[1]).string if wr[1] != '' else wr[2]}!",
                     color=random.randint(0, 0xFFFFFF),
                 )
                 firstfin_msg.set_footer(

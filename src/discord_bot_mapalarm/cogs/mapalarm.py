@@ -1,5 +1,6 @@
 import datetime
 import logging
+import random
 from pathlib import Path
 
 import discord
@@ -11,11 +12,13 @@ from discord_bot_mapalarm.db_ops.alarm_checker import AlarmChecker
 
 
 class MyCog(commands.Cog, name="AlarmsCog"):
-    def __init__(self, bot, config, secrets):
+    def __init__(self, bot, config, secrets, quotes, blacklist):
         self.index = 0
         self.bot = bot
         self.config = config
         self.secrets = secrets
+        self.quotes = quotes
+        self.blacklist = blacklist
         self.printer.start()
         self.logger = logging.getLogger(self.config["logger_name"])
 
@@ -86,7 +89,6 @@ class MyCog(commands.Cog, name="AlarmsCog"):
             if alarm_mark + 10 > nextmapin >= alarm_mark - 10:
                 next_map = server["maps"][1]["number"]
                 discord_ids_for_alarm = ac.get_discord_ids_for_map(next_map)
-                print(discord_ids_for_alarm)
                 for userid in discord_ids_for_alarm:
                     userid = userid[0]
                     self.logger.debug(f"processing {userid}")
@@ -98,14 +100,30 @@ class MyCog(commands.Cog, name="AlarmsCog"):
                             discriminator=userid.split("#")[1],
                         )
                         self.logger.debug(f"user: {user}    {user.id}")
+                        # check for blacklisted user
+                        if self.blacklist and user.id in self.blacklist:
+                            self.logger.info("user is blacklisted")
+                            continue
                         if user is None:
                             # bad user credentials
                             self.logger.error(f"ID {userid} is a bad Discord ID!")
                             continue
-                        await user.send(
-                            f"Hey, map **{next_map}** is coming up on Server **{servernum}**! "
-                            f"GLHF!"
-                        )
+                        if (
+                            self.quotes
+                            and random.randint(1, 100)
+                            < self.config["map_alarm_quotes_freq"]
+                        ):
+                            await user.send(
+                                f"Hey, map **{next_map}** is coming up on Server **{servernum}**! GLHF!\n"
+                                "Take this quote as motivation:\n >>> "
+                                + random.choices(self.quotes)[0]
+                                .strip()
+                                .replace("\\n", "\n")
+                            )
+                        else:
+                            await user.send(
+                                f"Hey, map **{next_map}** is coming up on Server **{servernum}**! GLHF!"
+                            )
                     except discord.errors.HTTPException:
                         self.logger.error(f"ID {userid} is a bad Discord ID!")
                     except IndexError:
@@ -158,5 +176,11 @@ async def setup(bot):
         config = yaml.load(c, yaml.FullLoader)
     with open(Path(__file__).parents[3] / "secrets.yaml") as s:
         secrets = yaml.load(s, yaml.FullLoader)
+    with open(Path(__file__).parents[3] / "blacklist.yaml") as s:
+        blacklist = yaml.load(s, yaml.FullLoader)
+    quotes = None
+    if config["map_alarm_quotes"]:
+        with open(Path(__file__).parents[3] / "quotes.txt") as q:
+            quotes = q.readlines()
 
-    await bot.add_cog(MyCog(bot, config, secrets))
+    await bot.add_cog(MyCog(bot, config, secrets, quotes, blacklist))

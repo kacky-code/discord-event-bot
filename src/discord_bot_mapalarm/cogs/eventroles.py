@@ -52,6 +52,8 @@ class MyCog(commands.Cog, name="EventrolesCog"):
         if not message.channel.id == self.config["event_roles_channel_id"]:
             return
         if not self.check_reply_to_bot(message):
+            # message is not a reply. delete
+            await message.delete()
             return
         guild = self.bot.get_guild(self.guild_id)
         # todo: check message content
@@ -114,6 +116,7 @@ class MyCog(commands.Cog, name="EventrolesCog"):
         checker = RoleChecker(self.config, self.secrets)
         fins = checker.get_fins_count()
         newfins = [f for f in fins if f[1] > self._last_check]
+        self._last_check = datetime.datetime.utcnow()
 
         for fin in newfins:
             # check if last fin happened after last check
@@ -124,7 +127,6 @@ class MyCog(commands.Cog, name="EventrolesCog"):
                 await self.send_rank_msg(fin)
                 self.logger.debug("awaited sending")
             # no rank change needed
-        self._last_check = datetime.datetime.utcnow()
         return
 
     async def send_rank_msg(self, fin_info):
@@ -194,8 +196,8 @@ class MyCog(commands.Cog, name="EventrolesCog"):
             elif event_roles[2] in user_roles and fin_info[0] == 50:
                 oldrole = event_roles[2]
                 newrole = event_roles[3]
-                self.logger.debug("")
             else:
+                oldrole = None
                 newrole = event_roles[0]
                 self.logger.debug("no role yet, giving bronze")
 
@@ -207,7 +209,8 @@ class MyCog(commands.Cog, name="EventrolesCog"):
             )
             name = user.mention
             self.logger.debug(f"known login, giving {name} role {newrole}")
-            await user.remove_roles(guild.get_role(oldrole))
+            if oldrole:
+                await user.remove_roles(guild.get_role(oldrole))
             await user.add_roles(guild.get_role(newrole))
         else:
             name = tmlogin
@@ -217,11 +220,24 @@ class MyCog(commands.Cog, name="EventrolesCog"):
             description=f"Congratulations to {name}",
             color=ranks[fin_info[0]][1],
         )
+
+        if fin_info[0] == 15:
+            medal = "bronze"
+        elif fin_info[0] == 25:
+            medal = "silver"
+        elif fin_info[0] == 40:
+            medal = "gold"
+        elif fin_info[0] == 50:
+            medal = "cattoilettophant"
+        medal = "https://static.kacky.info/misc/" + medal + ".jpg"
+        embed_msg.set_thumbnail(url=medal)
+
         cork_user = discord.utils.get(
             guild.members,
             name="corkscrew",
             discriminator="0874",
         )
+
         embed_msg.set_footer(
             text=f"Bot by {cork_user.display_name}",
             icon_url=cork_user.display_avatar.url,
