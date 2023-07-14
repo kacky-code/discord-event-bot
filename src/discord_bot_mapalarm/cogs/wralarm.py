@@ -108,11 +108,11 @@ class MyCog(commands.Cog, name="WRCog"):
             embed_msg.add_field(name="Source", value=f"{srcstr}", inline=True)
             embed_msg.add_field(name="\u200b", value="\u200b", inline=True)
             guild = self.bot.get_guild(self.guild_id)
-            cork_user = discord.utils.get(
-                guild.members,
-                name="corkscrew",
-                discriminator="0874",
-            )
+            # cork_user = discord.utils.get(
+            #    guild.members,
+            #    name="corkscrew.",
+            # )
+            cork_user = guild.get_member_named("corkscrew.")
             embed_msg.set_footer(
                 text=f"Bot by {cork_user.display_name}",
                 icon_url=cork_user.display_avatar.url,
